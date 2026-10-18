@@ -597,6 +597,7 @@ def crc_menu():
             # até porque ele não sabe se teve ou não. 
             receiver_crc = modulo_two_division(received_frame, generator)
 
+            print(f"Quadro enviado: {final_frame}")
             print(f"Quadro recebido: {received_frame}")
             print(f"CRC no receptor: {receiver_crc}")
 
@@ -665,7 +666,7 @@ def menu():
                 print()
 
         except ValueError:
-            
+
             print("Opção inválida! Digite 1, 2, 3 ou 4.")
             print()
 
