@@ -2,6 +2,7 @@
 def read_data(message: str):
 
     while True:
+
         # A função strip tira espaços antes e depois ou quebras de linha.
         data_bits = input(message).strip()
 
@@ -61,6 +62,8 @@ def calculate_parity(data_bits: str, mode: str = "even"):
 
 
 # Simula uma corrupção nos dados.
+# O parâmetro "allow_multiple" foi usado só para permitir uma generalização de função. 
+# Pois os menus 1 e 3 não tem restrição quanto a quantidade de erros, mas o 2 tem. 
 def noise_simulation(final_frame: str, allow_multiple: bool):
 
     print("SIMULAÇÃO DE RUÍDO")
@@ -87,6 +90,8 @@ def noise_simulation(final_frame: str, allow_multiple: bool):
 
                     data_list[bit_position] = "1"
 
+                # Se a flag de mais erros injetados estiver ativa, esse loop roda novamente poderia rodar novamente, 
+                # caso o usuário informasse que deseja adicionar mais erros de bits. 
                 if not allow_multiple:
 
                     break
@@ -119,6 +124,7 @@ def noise_simulation(final_frame: str, allow_multiple: bool):
 
     received_frame = "".join(data_list)
 
+    print(f"Quadro enviado: {final_frame}")
     print(f"Quadro recebido: {received_frame}")
     print()
 
@@ -220,46 +226,54 @@ def simple_parity_menu():
     while True:
 
         try:
+
             noise_option = int(input("Selecione uma opção [1. Simulação de ruído | 2. Sem ruído]: "))
             print()
 
             if noise_option == 1:
 
                 print(f"Quadro enviado: {final_frame}")
+
                 received_frame = noise_simulation(final_frame, True)
-
-                ones_count = 0
-
-                for bit in received_frame:
-
-                    if bit == "1":
-
-                        ones_count += 1
-
-                if ((mode_parity == "even" and ones_count % 2 == 0) or (mode_parity == "odd" and ones_count % 2 != 0)):
-                    
-                    print("Nenhum erro detectado pela verificação de paridade.")
-                    print()
-
-                else:
-
-                    print("Erro detectado! O quadro foi corrompido.")
-                    print()
-
-                break
 
             elif noise_option == 2:
 
                 print(f"Quadro enviado: {final_frame}")
-                print(f"Quadro recebido: {final_frame}")
-                print("Saindo...")
+
+                received_frame = final_frame
+
+                print(f"Quadro recebido: {received_frame}")
+
                 print()
-                break
+
+            else:
+                print("Opção inválida! Digite 1 ou 2.")
+
+                print()
+
+            # O receptor sempre faz a verificação, independentemente se há ruído ou não. 
+            # Até porque ele não sabe se tem ruído ou não. 
+            print("Iniciando verificação no recetor...")
+
+            ones_count = 0
+
+            for bit in received_frame:
+
+                if bit == "1":
+
+                    ones_count += 1
+
+            if ((mode_parity == "even" and ones_count % 2 == 0) or (mode_parity == "odd" and ones_count % 2 != 0)):
+                
+                print("Nenhum erro detectado pela verificação de paridade.")
+                print()
 
             else:
 
-                print("Opção inválida! Digite 1 ou 2.")
+                print("Erro detectado! O quadro foi corrompido.")
                 print()
+
+            break
 
         except ValueError:
 
@@ -303,6 +317,8 @@ def bi_dimensional_parity_menu():
     print("PARIDADE DAS LINHAS")
     print()
 
+    # Aqui, além de colocarmos os dados na matriz, também calulamos 
+    # a paridade das linhas. 
     for row_index in range(num_rows):
 
         row = []
@@ -356,6 +372,7 @@ def bi_dimensional_parity_menu():
 
     print()
 
+    # Inserindo erro de um bit. 
     while True:
 
         try:
@@ -380,6 +397,8 @@ def bi_dimensional_parity_menu():
             print("Linha inválida! Insira um número inteiro.")
             print()
 
+    # Faz uma cópia da matriz original e altera a linha que sofreu 
+    # erro de bit. 
     received_matrix = []
 
     for original_row in matrix:
@@ -415,7 +434,7 @@ def bi_dimensional_parity_menu():
     error_row = None
     error_column = None
 
-    # Verifica todas as linhas, inclusive a linha de paridades.
+    # Receptor verifica todas as linhas, inclusive a linha de paridades.
     for row_index in range(num_rows + 1):
 
         count_ones = 0
@@ -453,15 +472,23 @@ def bi_dimensional_parity_menu():
     print("Começando as correções...")
     print()
 
+    # Faz uma cópia da matriz recebida e corrige a linha que sofreu 
+    # erro de bit. 
+    corrected_matrix = []
+
+    for row in received_matrix:
+
+        corrected_matrix.append(row.copy())
+
     # Uma vez que o algoritmo sabe qual bit está errado,
     # ele consegue arrumar.
-    if received_matrix[error_row][error_column] == "1":
+    if corrected_matrix[error_row][error_column] == "1":
 
-        received_matrix[error_row][error_column] = "0"
+        corrected_matrix[error_row][error_column] = "0"
 
     else:
 
-        received_matrix[error_row][error_column] = "1"
+        corrected_matrix[error_row][error_column] = "1"
 
     print("Matriz enviada:")
 
@@ -489,18 +516,19 @@ def bi_dimensional_parity_menu():
 
     print("Matriz corrigida:")
 
-    for row_index in range(len(received_matrix)):
+    for row_index in range(len(corrected_matrix)):
 
-        if row_index == len(received_matrix) - 1:
+        if row_index == len(corrected_matrix) - 1:
 
-            print("-" * (2 * len(received_matrix[0]) + 2))
+            print("-" * (2 * len(corrected_matrix[0]) + 2))
 
-        print(" ".join(received_matrix[row_index][:-1]),"|", received_matrix[row_index][-1])
+        print(" ".join(corrected_matrix[row_index][:-1]),"|", corrected_matrix[row_index][-1])
 
     print()
 
 
 def crc_menu():
+
     print("MENU CRC")
     print()
     print("-" * 40)
@@ -510,20 +538,23 @@ def crc_menu():
     print()
 
     while True:
-        generator = read_data(
-            "Digite o polinômio gerador em binário: "
-        )
+
+        generator = read_data("Digite o polinômio gerador em binário: ")
         print()
 
         # O gerador tem que começar com 1 pro grau do polinômio ficar certo
         # e terminar com 1 pro termo constante não sumir (o que geraria um fator x).
         if (len(generator) >= 2 and generator[0] == "1" and generator[-1] == "1"):
+
             break
 
         print("Polinômio gerador inválido! Use pelo menos 2 bits, começando e terminando com 1.")
         print()
 
+    # Calulamos o grau do polinômio gerador a fim de saber quantos appends de zeros
+    # vamos ter que fazer nos dados. 
     degree = len(generator) - 1
+
     extended_data = data_bits + "0" * degree
 
     print(f"Dados: {data_bits}")
@@ -541,44 +572,56 @@ def crc_menu():
     print()
 
     while True:
+
         try:
             noise_option = int(input("Selecione uma opção [1. Simulação de ruído | 2. Sem ruído]: "))
             print()
 
             if noise_option == 1:
+
                 print(f"Quadro enviado: {final_frame}")
                 received_frame = noise_simulation(final_frame, True)
 
             elif noise_option == 2:
+
                 received_frame = final_frame
 
             else:
+
                 print("Opção inválida! Digite 1 ou 2.")
                 print()
                 continue
 
             # O receptor divide o quadro recebido, sem adicionar zeros.
+            # E ele faz isso sempre, independentemente se teve ruído ou não,
+            # até porque ele não sabe se teve ou não. 
             receiver_crc = modulo_two_division(received_frame, generator)
 
             print(f"Quadro recebido: {received_frame}")
-            print(f"Resto no receptor: {receiver_crc}")
+            print(f"CRC no receptor: {receiver_crc}")
 
+            # Se o resto no receptor (crc) for 0, quer dizer que o quadro 
+            # está intacto. 
             if receiver_crc == "0" * degree:
+
                 print("Nenhum erro detectado pela verificação de CRC.")
                 print()
                 break
 
             else:
+
                 print("Erro detectado! O quadro foi corrompido.")
                 print()
                 break
 
         except ValueError:
+
             print("Opção inválida! Digite 1 ou 2.")
             print()
 
 
 def menu():
+
     print("SIMULADOR DE ERROS DA CAMADA DE ENLACE")
     print()
     print("-" * 40)
@@ -587,34 +630,42 @@ def menu():
     option = 0
 
     while True:
+
         try:
+
             option = int(input("Selecione uma opção [1. Simulação de paridade simples | 2. Simulação de paridade bidimensional | 3. Simulação de CRC | 4. Sair]: "))
             print()
 
             if option == 1:
+
                 print("Você escolheu a simulação de paridade simples.")
                 print()
                 simple_parity_menu()
 
             elif option == 2:
+
                 print("Você escolheu a simulação de paridade bidimensional.")
                 bi_dimensional_parity_menu()
                 print()
 
             elif option == 3:
+
                 print("Você escolheu a simulação de CRC.")
                 crc_menu()
                 print()
 
             elif option == 4:
+
                 print("Encerrando...")
                 break
 
             else:
+
                 print("Opção inválida! Digite 1, 2, 3 ou 4.")
                 print()
 
         except ValueError:
+            
             print("Opção inválida! Digite 1, 2, 3 ou 4.")
             print()
 
