@@ -248,8 +248,8 @@ def simple_parity_menu():
 
             else:
                 print("Opção inválida! Digite 1 ou 2.")
-
                 print()
+                continue 
 
             # O receptor sempre faz a verificação, independentemente se há ruído ou não. 
             # Até porque ele não sabe se tem ruído ou não. 
